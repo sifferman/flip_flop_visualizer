@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Flip Flop Visualizer</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='slider.css'>
+    <script src='main.js' defer></script>
+</head>
+<body>
+    <h1 class="center">Flip Flop Visualizer</h1>
+    <table class="center">
+        <tr>
+            <!-- clk -->
+            <td><table>
+                <tr>
+                    <td>Freq (MHz)</td>
+                    <td><input type="number" id="clk_frequency_input" value="500" min="0" onchange="handle_clk_frequency_input()"/></td>
+                </tr>
+                <tr>
+                    <td>Stop (ns)</td>
+                    <td><input type="number" id="clk_duration_input" value="5" min="0" onchange="handle_clk_duration_input()"/></td>
+                </tr>
+            </table></td>
+            <td>
+                <canvas class="toggle_canvas" toggles="clk_to_toggles()"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <!-- q -->
+            <td></td>
+            <td>
+                <canvas id="q_canvas"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <!-- d -->
+            <td></td>
+            <td>
+                <canvas class="toggle_canvas" toggles="multirange_to_toggles('d_slider')"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <!-- d slider -->
+            <td>
+                <button type="button" id="d_slider_add" onclick="handle_slider_add('d_slider')">&plus;</button>
+                <button type="button" id="d_slider_sub" onclick="handle_slider_sub('d_slider')">&minus;</button>
+            </td>
+            <td>
+                <div class="multirange_container">
+                    <div id="d_slider" class="sliders_control">
+                        <input class="multirange_skeleton" type="range" disabled/>
+                        <input class="multirange_thumb" type="range" value="2" oninput="handle_slider()"/>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+</body>
+</html>

@@ -1,0 +1,66 @@
+
+/* https://stackoverflow.com/questions/74828636/css-for-two-button-range-slider */
+
+.multirange_container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+  min-height: 50px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #C6C6C6;
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #C6C6C6;
+  cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  background: #f7f7f7;
+}
+input[type=range]::-webkit-slider-thumb:active {
+  box-shadow: inset 0 0 3px #387bbe, 0 0 9px #387bbe;
+  -webkit-box-shadow: inset 0 0 3px #387bbe, 0 0 9px #387bbe;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  width: 100%;
+  position: absolute;
+  background-color: #f79847;
+  pointer-events: none;
+}
+
+.multirange_thumb {
+  height: 0 !important;
+  z-index: 1;
+  top: 5px;
+}
+
+.multirange_skeleton::-webkit-slider-thumb {
+  pointer-events: none !important;
+  display: none !important;
+  visibility: hidden !important;
+}
+.multirange_skeleton::-moz-range-thumb {
+  pointer-events: none !important;
+  visibility: hidden !important;
+  display: none !important;
+}

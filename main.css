@@ -1,0 +1,109 @@
+
+html,
+body {
+    margin: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+
+    font-size: 20px;
+    font-family: Courier, monospace;
+    letter-spacing: .08em;
+}
+
+body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+
+body > * {
+    box-sizing: border-box;
+    padding: 0 1em;
+}
+
+
+/* Element Defaults */
+img {
+    max-width: 100%;
+    display: block;
+}
+a {
+    color: inherit;
+    text-decoration: none;
+}
+a:active {
+    color: inherit;
+}
+p {
+    text-indent: 1em;
+}
+p img {
+    margin: .2em auto;
+}
+code {
+    opacity: .7;
+}
+code,
+textarea {
+    font-size: .8em;
+}
+textarea {
+    resize: none;
+    max-width: 100%;
+}
+
+
+/* Flex Classes */
+.flex {
+    display: flex;
+    align-items: center;
+}
+
+.flex__row              { flex-direction:   row         }
+.flex__column           { flex-direction:   column      }
+.flex__row-reverse      { flex-direction:   row-reverse }
+.flex__wrap             { flex-wrap     :   wrap        }
+.flex__space-around     { justify-content: space-around; }
+.flex-child__stretch    { align-self    :   stretch     }
+
+.flex p {
+    margin: 1em;
+    max-width: 800px;
+}
+
+
+/* Center */
+.center {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.center:not( img ) {
+    width: fit-content;
+}
+
+.center-within {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+input[type=number] {
+    width: 8ch;
+}
+
+canvas {
+    height: 70px;
+    width: 100%;
+}
+td:has(canvas) {
+    width: 100%;
+    max-width: 1000px;
+}
