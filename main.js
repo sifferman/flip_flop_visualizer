@@ -160,7 +160,6 @@ function draw_q_canvas() {
             let d_after_hold = d_at_time(nextTime + FALLING_HOLDTIME);
             ctx.lineTo(nextX, 0);
             if ((d_before_setup == 0)&&(d_after_hold == 0)) {
-                console.log(`falling: ${nextTime} < ${STOP_TIME}`);
                 if (nextTime < STOP_TIME) ctx.lineTo(nextX, canvas.height);
                 value_is_1 = false;
             }
@@ -171,7 +170,6 @@ function draw_q_canvas() {
             let d_after_hold = d_at_time(nextTime + RISING_HOLDTIME);
             ctx.lineTo(nextX, canvas.height);
             if ((d_before_setup == 1)&&(d_after_hold == 1)) {
-                console.log(`rising: ${nextTime} < ${STOP_TIME}`);
                 if (nextTime < STOP_TIME) ctx.lineTo(nextX, 0);
                 value_is_1 = true;
             }
@@ -184,6 +182,43 @@ function draw_q_canvas() {
 function handle_slider() {
     draw_toggle_canvases();
     draw_q_canvas();
+}
+
+function handle_sync_rst() {
+    const dom_sync_rst = document.getElementById("sync_rst");
+    if (dom_sync_rst.checked) {
+        document.getElementById("async_rst").disabled = true;
+        document.getElementById("async_rst").checked = false;
+        document.getElementById("schematic_no_sync_rst").style.visibility = "hidden";
+        document.getElementById("schematic_sync_rst").style.visibility = "visible";
+    } else {
+        document.getElementById("async_rst").disabled = false;
+        document.getElementById("schematic_no_sync_rst").style.visibility = "visible";
+        document.getElementById("schematic_sync_rst").style.visibility = "hidden";
+    }
+}
+function handle_async_rst() {
+    const dom_async_rst = document.getElementById("async_rst");
+    if (dom_async_rst.checked) {
+        document.getElementById("sync_rst").disabled = true;
+        document.getElementById("sync_rst").checked = false;
+        document.getElementById("schematic_no_async_rst").style.visibility = "hidden";
+        document.getElementById("schematic_async_rst").style.visibility = "visible";
+    } else {
+        document.getElementById("sync_rst").disabled = false;
+        document.getElementById("schematic_no_async_rst").style.visibility = "visible";
+        document.getElementById("schematic_async_rst").style.visibility = "hidden";
+    }
+}
+function handle_async_set() {
+    const dom_async_set = document.getElementById("async_set");
+    if (dom_async_set.checked) {
+        document.getElementById("schematic_no_async_set").style.visibility = "hidden";
+        document.getElementById("schematic_async_set").style.visibility = "visible";
+    } else {
+        document.getElementById("schematic_no_async_set").style.visibility = "visible";
+        document.getElementById("schematic_async_set").style.visibility = "hidden";
+    }
 }
 
 function draw_canvases() {
@@ -200,4 +235,9 @@ fix_multiranges();
 handle_clk_frequency_input();
 handle_clk_duration_input();
 window.addEventListener('resize', draw_canvases, false);
-draw_canvases()
+draw_canvases();
+
+document.getElementById("schematic_shared").style.visibility = "visible";
+handle_sync_rst();
+handle_async_rst();
+handle_async_set();

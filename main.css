@@ -107,3 +107,25 @@ td:has(canvas) {
     width: 100%;
     max-width: 1000px;
 }
+
+#schematic {
+    position: relative;
+    max-width: 1000px;
+    width: 100%;
+    height: 100%;
+}
+
+#schematic img {
+    visibility: hidden;
+}
+#schematic img:not(:first-child) {
+    position: absolute;
+}
+#schematic img {
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}

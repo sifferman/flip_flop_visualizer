@@ -11,6 +11,17 @@
 </head>
 <body>
     <h1 class="center">Flip Flop Visualizer</h1>
+    <div class="flex flex__row flex__space-around">
+        <label for="sync_rst">
+            <input type="checkbox" id="sync_rst" oninput="handle_sync_rst()"> sync_rst
+        </label>
+        <label for="async_rst">
+            <input type="checkbox" id="async_rst" oninput="handle_async_rst()"> async_rst
+        </label>
+        <label for="async_set">
+            <input type="checkbox" id="async_set" oninput="handle_async_set()"> async_set
+        </label>
+    </div>
     <table class="center">
         <tr>
             <!-- clk -->
@@ -30,14 +41,14 @@
         </tr>
         <tr>
             <!-- q -->
-            <td></td>
+            <td>Q Output</td>
             <td>
                 <canvas id="q_canvas"></canvas>
             </td>
         </tr>
         <tr>
             <!-- d -->
-            <td></td>
+            <td>D Input</td>
             <td>
                 <canvas class="toggle_canvas" toggles="multirange_to_toggles('d_slider')"></canvas>
             </td>
@@ -59,5 +70,15 @@
         </tr>
 
     </table>
+    <div id="schematic" class="center">
+        <img src="./ff_svgs/async_rst.svg" alt="blank"/>
+        <img src="./ff_svgs/async_rst.svg" alt="async_rst" id="schematic_async_rst"/>
+        <img src="./ff_svgs/async_set.svg" alt="async_set" id="schematic_async_set"/>
+        <img src="./ff_svgs/no_async_rst.svg" alt="no_async_rst" id="schematic_no_async_rst"/>
+        <img src="./ff_svgs/no_async_set.svg" alt="no_async_set" id="schematic_no_async_set"/>
+        <img src="./ff_svgs/no_sync_rst.svg" alt="no_sync_rst" id="schematic_no_sync_rst"/>
+        <img src="./ff_svgs/shared.svg" alt="shared" id="schematic_shared"/>
+        <img src="./ff_svgs/sync_rst.svg" alt="sync_rst" id="schematic_sync_rst"/>
+    </div>
 </body>
 </html>
