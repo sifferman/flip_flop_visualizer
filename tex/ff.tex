@@ -1,0 +1,73 @@
+\documentclass{standalone}
+\usepackage{circuitikz}
+\usepackage{textgreek}
+\usepackage{amsmath}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\ctikzset{
+    logic ports=ieee
+}
+
+\begin{circuitikz} \draw
+    (0,0) node[tgate, anchor=in, scale=0.5](TG1){}
+    (TG1.in) node[nand port, anchor=out](X1){}
+    (X1.in 1) node[left]{$\overline{\text{reset}}$}
+    (X1.in 2) node[left]{D}
+    (TG1.notgate) node[above]{\textphi}
+    (TG1.gate) node[below]{$\overline{\text{\textphi}}$}
+    (TG1.out) -- (1.6,0) node[nand port, anchor=in 2](X2){}
+    (X2.in 1) node[left]{$\overline{\text{set}}$}
+    (X2.out) -| (4,0) node[tgate, anchor=in, yscale=-1, scale=0.5](TG2){}
+    (TG2.gate) node[above]{\textphi}
+    (TG2.notgate) node[below]{$\overline{\text{\textphi}}$}
+    (TG2.out) -- (5.9,0) node[nand port, anchor=in 2](X3){}
+    (X3.in 1) node[left]{$\overline{\text{reset}}$}
+    (X3.out) -| (8.4,0) node[not port, anchor=in](X4){}
+    (X4.out) node[right]{Q}
+
+    (TG2.in) -- ++(0,-1.5) node[nand port, anchor=in 1, xscale=-1](BUFFER1){}
+    (BUFFER1.out) -| (X2.in 2)
+    (BUFFER1.in 2) node[right]{$\overline{\text{reset}}$}
+    (BUFFER1.down) node[notcirc, below]{} -- ++(0,-0.3) node[below]{$\overline{\text{\textphi}}$}
+    (BUFFER1.up) -- ++(0,0.3) node[above]{\textphi}
+
+    (X4.in) -- ++(0,-1.5) node[nand port, anchor=in 1, xscale=-1](BUFFER2){}
+    (BUFFER2.out) -| (X3.in 2)
+    (BUFFER2.in 2) node[right]{$\overline{\text{set}}$}
+    (BUFFER2.down) -- ++(0,-0.3) node[below]{$\overline{\text{\textphi}}$}
+    (BUFFER2.up) node[notcirc, above]{} -- ++(0,0.3) node[above]{\textphi}
+;
+\end{circuitikz}
+
+\begin{circuitikz} \draw
+    (0,0) node[tgate, anchor=in, scale=0.5](TG1){}
+    (TG1.in) node[not port, anchor=out](X1){}
+    (X1.in) node[left]{D}
+    (TG1.notgate) node[above]{\textphi}
+    (TG1.gate) node[below]{$\overline{\text{\textphi}}$}
+    (TG1.out) -- (1.6,0) node[not port, anchor=in](X2){}
+    (X2.out) -| (4,0) node[tgate, anchor=in, yscale=-1, scale=0.5](TG2){}
+    (TG2.gate) node[above]{\textphi}
+    (TG2.notgate) node[below]{$\overline{\text{\textphi}}$}
+    (TG2.out) -- (5.9,0) node[not port, anchor=in](X3){}
+    (X3.out) -| (8.4,0) node[not port, anchor=in](X4){}
+    (X4.out) node[right]{Q}
+
+    (TG2.in) -- ++(0,-1.5) node[buffer port, anchor=in, xscale=-1](BUFFER1){}
+    (BUFFER1.bin) node[notcirc, right]{}
+    (BUFFER1.out) -| (X2.in)
+    (BUFFER1.down) node[notcirc, below]{} -- ++(0,-0.3) node[below]{$\overline{\text{\textphi}}$}
+    (BUFFER1.up) -- ++(0,0.3) node[above]{\textphi}
+
+    (X4.in) -- ++(0,-1.5) node[buffer port, anchor=in, xscale=-1](BUFFER2){}
+    (BUFFER2.bin) node[notcirc, right]{}
+    (BUFFER2.out) -| (X3.in)
+    (BUFFER2.down) -- ++(0,-0.3) node[below]{$\overline{\text{\textphi}}$}
+    (BUFFER2.up) node[notcirc, above]{} -- ++(0,0.3) node[above]{\textphi}
+;
+\end{circuitikz}
+
+\end{document}
