@@ -16,13 +16,15 @@ var RISING_HOLDTIME = -0.065;
 var FALLING_HOLDTIME = 0.002;
 var RISING_SETUPTIME = 0.029;
 var FALLING_SETUPTIME = 0.091;
+var ASYNCSETTIME = 0.029;
+var ASYNCRSTTIME = 0.029;
 
 const freq2time = ( freq ) => (1000 / freq);
 const time2freq = ( freq ) => (1000 / freq);
 
 const time2canvasX = ( time, canvas ) => (Math.min((time / STOP_TIME) * canvas.width, canvas.width-1));
 
-var multiranges = ["d_slider"];
+var multiranges = ["d_slider", "rst_slider", "set_slider"];
 
 
 function handle_clk_frequency_input() {
@@ -77,8 +79,10 @@ function handle_slider_sub(multirange) {
 }
 
 function multirange_to_toggles(multirange) {
+    let inverted = ["rst_slider", "set_slider"].includes(multirange);
     let thumbs = document.getElementById(multirange).querySelectorAll('.multirange_thumb');
     toggles = []
+    if (inverted) toggles.push(-1);
     thumbs.forEach(thumb => {
         toggles.push(parseFloat(thumb.value));
     });
@@ -128,8 +132,8 @@ function draw_toggle_canvases() {
     });
 }
 
-function d_at_time(time) {
-    let d_toggles = multirange_to_toggles('d_slider');
+function toggle_value_at_time(multirange, time) {
+    let d_toggles = multirange_to_toggles(multirange);
     let toggle_index = 0;
     for (toggle_index = 0; toggle_index < d_toggles.length; toggle_index++) {
         if (time < d_toggles[toggle_index]) {
@@ -142,6 +146,11 @@ function d_at_time(time) {
 function draw_q_canvas() {
     const canvas = document.getElementById("q_canvas");
     const ctx = canvas.getContext('2d');
+
+    const has_sync_rst = document.getElementById("sync_rst").checked;
+    const has_async_rst = document.getElementById("async_rst").checked;
+    const has_async_set = document.getElementById("async_set").checked;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
 
     ctx.strokeStyle = 'black';
@@ -156,20 +165,28 @@ function draw_q_canvas() {
         if (value_is_1) {
             nextTime += FALLING_CLKTOQ;
             const nextX = time2canvasX(nextTime, canvas);
-            let d_before_setup = d_at_time(nextTime - FALLING_SETUPTIME);
-            let d_after_hold = d_at_time(nextTime + FALLING_HOLDTIME);
+            let value_before_setup = toggle_value_at_time("d_slider", nextTime - FALLING_SETUPTIME);
+            let value_after_hold = toggle_value_at_time("d_slider", nextTime + FALLING_HOLDTIME);
+            if (has_sync_rst) {
+                value_before_setup &= toggle_value_at_time("rst_slider", nextTime - FALLING_SETUPTIME);
+                value_after_hold &= toggle_value_at_time("rst_slider", nextTime + FALLING_HOLDTIME);
+            }
             ctx.lineTo(nextX, 0);
-            if ((d_before_setup == 0)&&(d_after_hold == 0)) {
+            if ((value_before_setup == 0)&&(value_after_hold == 0)) {
                 if (nextTime < STOP_TIME) ctx.lineTo(nextX, canvas.height);
                 value_is_1 = false;
             }
         } else {
             nextTime += RISING_CLKTOQ;
             const nextX = time2canvasX(nextTime, canvas);
-            let d_before_setup = d_at_time(nextTime - RISING_SETUPTIME);
-            let d_after_hold = d_at_time(nextTime + RISING_HOLDTIME);
+            let value_before_setup = toggle_value_at_time("d_slider", nextTime - RISING_SETUPTIME);
+            let value_after_hold = toggle_value_at_time("d_slider", nextTime + RISING_HOLDTIME);
+            if (has_sync_rst) {
+                value_before_setup &= toggle_value_at_time("rst_slider", nextTime - RISING_SETUPTIME);
+                value_after_hold &= toggle_value_at_time("rst_slider", nextTime + RISING_HOLDTIME);
+            }
             ctx.lineTo(nextX, canvas.height);
-            if ((d_before_setup == 1)&&(d_after_hold == 1)) {
+            if ((value_before_setup == 1)&&(value_after_hold == 1)) {
                 if (nextTime < STOP_TIME) ctx.lineTo(nextX, 0);
                 value_is_1 = true;
             }
@@ -191,11 +208,17 @@ function handle_sync_rst() {
         document.getElementById("async_rst").checked = false;
         document.getElementById("schematic_no_sync_rst").style.visibility = "hidden";
         document.getElementById("schematic_sync_rst").style.visibility = "visible";
+        document.getElementById("rst_slider_cell").style.visibility = "visible";
+        document.getElementById("rst_cell").style.visibility = "visible";
     } else {
         document.getElementById("async_rst").disabled = false;
+        document.getElementById("async_rst").checked = false;
         document.getElementById("schematic_no_sync_rst").style.visibility = "visible";
         document.getElementById("schematic_sync_rst").style.visibility = "hidden";
+        document.getElementById("rst_slider_cell").style.visibility = "hidden";
+        document.getElementById("rst_cell").style.visibility = "hidden";
     }
+    draw_canvases();
 }
 function handle_async_rst() {
     const dom_async_rst = document.getElementById("async_rst");
@@ -204,21 +227,32 @@ function handle_async_rst() {
         document.getElementById("sync_rst").checked = false;
         document.getElementById("schematic_no_async_rst").style.visibility = "hidden";
         document.getElementById("schematic_async_rst").style.visibility = "visible";
+        document.getElementById("rst_slider_cell").style.visibility = "visible";
+        document.getElementById("rst_cell").style.visibility = "visible";
     } else {
         document.getElementById("sync_rst").disabled = false;
+        document.getElementById("sync_rst").checked = false;
         document.getElementById("schematic_no_async_rst").style.visibility = "visible";
         document.getElementById("schematic_async_rst").style.visibility = "hidden";
+        document.getElementById("rst_slider_cell").style.visibility = "hidden";
+        document.getElementById("rst_cell").style.visibility = "hidden";
     }
+    draw_canvases();
 }
 function handle_async_set() {
     const dom_async_set = document.getElementById("async_set");
     if (dom_async_set.checked) {
         document.getElementById("schematic_no_async_set").style.visibility = "hidden";
         document.getElementById("schematic_async_set").style.visibility = "visible";
+        document.getElementById("set_cell").style.visibility = "visible";
+        document.getElementById("set_slider_cell").style.visibility = "visible";
     } else {
         document.getElementById("schematic_no_async_set").style.visibility = "visible";
         document.getElementById("schematic_async_set").style.visibility = "hidden";
+        document.getElementById("set_cell").style.visibility = "hidden";
+        document.getElementById("set_slider_cell").style.visibility = "hidden";
     }
+    draw_canvases();
 }
 
 function draw_canvases() {

@@ -68,6 +68,50 @@
                 </div>
             </td>
         </tr>
+        <tr id="rst_cell">
+            <!-- rst -->
+            <td><span style="text-decoration: overline">reset</span> Input</td>
+            <td>
+                <canvas class="toggle_canvas" toggles="multirange_to_toggles('rst_slider')"></canvas>
+            </td>
+        </tr>
+        <tr id="rst_slider_cell">
+            <td>
+                <button type="button" id="rst_slider_add" onclick="handle_slider_add('rst_slider')">&plus;</button>
+                <button type="button" id="rst_slider_sub" onclick="handle_slider_sub('rst_slider')">&minus;</button>
+            </td>
+            <td>
+                <div class="multirange_container">
+                    <div id="rst_slider" class="sliders_control">
+                        <input class="multirange_skeleton" type="range" disabled/>
+                        <input class="multirange_thumb" type="range" value="2" oninput="handle_slider()"/>
+                        <input class="multirange_thumb" type="range" value="3" oninput="handle_slider()"/>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr id="set_cell">
+            <!-- rst -->
+            <td><span style="text-decoration: overline">set</span> Input</td>
+            <td>
+                <canvas class="toggle_canvas" toggles="multirange_to_toggles('set_slider')"></canvas>
+            </td>
+        </tr>
+        <tr id="set_slider_cell">
+            <td>
+                <button type="button" id="set_slider_add" onclick="handle_slider_add('set_slider')">&plus;</button>
+                <button type="button" id="set_slider_sub" onclick="handle_slider_sub('set_slider')">&minus;</button>
+            </td>
+            <td>
+                <div class="multirange_container">
+                    <div id="set_slider" class="sliders_control">
+                        <input class="multirange_skeleton" type="range" disabled/>
+                        <input class="multirange_thumb" type="range" value="2" oninput="handle_slider()"/>
+                        <input class="multirange_thumb" type="range" value="3" oninput="handle_slider()"/>
+                    </div>
+                </div>
+            </td>
+        </tr>
 
     </table>
     <div id="schematic" class="center">
