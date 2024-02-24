@@ -108,6 +108,8 @@ function draw_toggle_canvases() {
         if (togglesAttr) {
             const ctx = canvas.getContext('2d');
             let toggles = eval(togglesAttr);
+            if (toggles === undefined)
+                console.error(`${togglesAttr} failed`)
             toggles.push(STOP_TIME);
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
             ctx.strokeStyle = 'black';
@@ -143,62 +145,72 @@ function toggle_value_at_time(multirange, time) {
     return (toggle_index%2);
 }
 
-function draw_q_canvas() {
-    const canvas = document.getElementById("q_canvas");
-    const ctx = canvas.getContext('2d');
-
+function q_toggles() {
     const has_sync_rst = document.getElementById("sync_rst").checked;
     const has_async_rst = document.getElementById("async_rst").checked;
     const has_async_set = document.getElementById("async_set").checked;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
+    // Generate update events
+    const set_events = multirange_to_toggles('set_slider').map(value => ({ name: 'set', value }));
+    const rst_events = multirange_to_toggles('rst_slider').map(value => ({ name: 'rst', value }));
+    const clk_events = clk_to_toggles().map(value => ({ name: 'clk', value }));
+    const filtered_set_events = set_events.filter(event => event.value >= 0);
+    const filtered_rst_events = rst_events.filter(event => event.value >= 0);
+    const filtered_clk_events = clk_events.filter((_, index) => index % 2 === 0);
+    const events = [...filtered_set_events, ...filtered_rst_events, ...filtered_clk_events].sort((a, b) => a.value - b.value);
 
-    ctx.strokeStyle = 'black';
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height); // Start from the bottom of the canvas
-
-    let cycle = 0;
-    let nextTime = 0;
     let value_is_1 = false;
-    while (nextTime < STOP_TIME) {
-        nextTime = (freq2time(CLK_FREQ)/2) + (freq2time(CLK_FREQ)*cycle);
+    let toggles = [];
+
+    for (const event of events) {
         if (value_is_1) {
-            nextTime += FALLING_CLKTOQ;
-            const nextX = time2canvasX(nextTime, canvas);
-            let value_before_setup = toggle_value_at_time("d_slider", nextTime - FALLING_SETUPTIME);
-            let value_after_hold = toggle_value_at_time("d_slider", nextTime + FALLING_HOLDTIME);
-            if (has_sync_rst) {
-                value_before_setup &= toggle_value_at_time("rst_slider", nextTime - FALLING_SETUPTIME);
-                value_after_hold &= toggle_value_at_time("rst_slider", nextTime + FALLING_HOLDTIME);
-            }
-            ctx.lineTo(nextX, 0);
-            if ((value_before_setup == 0)&&(value_after_hold == 0)) {
-                if (nextTime < STOP_TIME) ctx.lineTo(nextX, canvas.height);
-                value_is_1 = false;
+            if (has_async_rst && event.name == "rst" && !toggle_value_at_time("rst_slider", event.value)) {
+                toggles.push(event.value + ASYNCRSTTIME)
+                value_is_1 = 0;
+            } else if (has_async_set && event.name == "set") {
+            } else if (has_async_set && !toggle_value_at_time("set_slider", event.value - ASYNCSETTIME)) {
+            } else if (has_async_set && event.name == "clk" && !toggle_value_at_time("set_slider", event.value - ASYNCSETTIME + FALLING_CLKTOQ)) {
+                // maintain 1
+            } else if (event.name == "clk") {
+                let value_before_setup = toggle_value_at_time("d_slider", event.value - FALLING_SETUPTIME);
+                let value_after_hold = toggle_value_at_time("d_slider", event.value + FALLING_HOLDTIME);
+                if (has_sync_rst) {
+                    value_before_setup &= toggle_value_at_time("rst_slider", event.value - FALLING_SETUPTIME);
+                    value_after_hold &= toggle_value_at_time("rst_slider", event.value + FALLING_HOLDTIME);
+                }
+                if (value_before_setup == 0 && value_after_hold == 0) {
+                    toggles.push(event.value + FALLING_CLKTOQ)
+                    value_is_1 = 0;
+                }
             }
         } else {
-            nextTime += RISING_CLKTOQ;
-            const nextX = time2canvasX(nextTime, canvas);
-            let value_before_setup = toggle_value_at_time("d_slider", nextTime - RISING_SETUPTIME);
-            let value_after_hold = toggle_value_at_time("d_slider", nextTime + RISING_HOLDTIME);
-            if (has_sync_rst) {
-                value_before_setup &= toggle_value_at_time("rst_slider", nextTime - RISING_SETUPTIME);
-                value_after_hold &= toggle_value_at_time("rst_slider", nextTime + RISING_HOLDTIME);
-            }
-            ctx.lineTo(nextX, canvas.height);
-            if ((value_before_setup == 1)&&(value_after_hold == 1)) {
-                if (nextTime < STOP_TIME) ctx.lineTo(nextX, 0);
-                value_is_1 = true;
+            if (has_async_rst && event.name == "rst" && !toggle_value_at_time("rst_slider", event.value)) {
+            } else if (has_async_rst && !toggle_value_at_time("rst_slider", event.value - ASYNCRSTTIME)) {
+            } else if (has_async_rst && event.name == "clk" && !toggle_value_at_time("rst_slider", event.value - ASYNCRSTTIME + RISING_CLKTOQ)) {
+                // maintain 0
+            } else if (has_async_set && event.name == "set") {
+                toggles.push(event.value + ASYNCSETTIME)
+                value_is_1 = 1;
+            } else if (event.name == "clk") {
+                let value_before_setup = toggle_value_at_time("d_slider", event.value - RISING_SETUPTIME);
+                let value_after_hold = toggle_value_at_time("d_slider", event.value + RISING_HOLDTIME);
+                if (has_sync_rst) {
+                    value_before_setup &= toggle_value_at_time("rst_slider", event.value - RISING_SETUPTIME);
+                    value_after_hold &= toggle_value_at_time("rst_slider", event.value + RISING_HOLDTIME);
+                }
+                if (value_before_setup == 1 && value_after_hold == 1) {
+                    toggles.push(event.value + RISING_CLKTOQ)
+                    value_is_1 = 1;
+                }
             }
         }
-        cycle++;
     }
-    ctx.stroke();
+
+    return toggles;
 }
 
 function handle_slider() {
-    draw_toggle_canvases();
-    draw_q_canvas();
+    draw_canvases();
 }
 
 function handle_sync_rst() {
@@ -262,7 +274,6 @@ function draw_canvases() {
         canvas.height = parseInt(computedStyle.height);
     });
     draw_toggle_canvases();
-    draw_q_canvas();
 }
 
 fix_multiranges();
