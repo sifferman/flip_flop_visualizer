@@ -101,6 +101,83 @@ function clk_to_toggles() {
     return toggles;
 }
 
+function violations() {
+    // combine events into single map
+    // remove events with duplicate times
+
+    const has_sync_rst = document.getElementById("sync_rst").checked;
+    const has_async_rst = document.getElementById("async_rst").checked;
+    const has_async_set = document.getElementById("async_set").checked;
+
+    // Generate update events
+    let events = [];
+    if (has_sync_rst) {
+        const d_slider_toggles = multirange_to_toggles('d_slider');
+        const rst_slider_toggles = multirange_to_toggles('rst_slider');
+        const filtered_d_slider_toggles = d_slider_toggles.filter(d_toggle => !rst_slider_toggles.includes(d_toggle));
+
+        const d_events = filtered_d_slider_toggles.map(value => ({ name: 'd', value }));
+        const rst_events = rst_slider_toggles.map(value => ({ name: 'rst', value }));
+        events = [...d_events, ...rst_events].sort((a, b) => a.value - b.value);
+    } else {
+        events = multirange_to_toggles('d_slider').map(value => ({ name: 'd', value }));
+    }
+
+    let value_is_1 = false;
+    let toggles = [];
+
+    events.forEach(event => {
+        if (value_is_1) {
+            if (has_sync_rst && event.name == 'rst' && !multirange_value_at_time('rst_slider', event.value)) {
+                toggles.push(event.value);
+                value_is_1 = 0;
+            } else if (event.name == 'd' && !multirange_value_at_time('d_slider', event.value)) {
+                toggles.push(event.value);
+                value_is_1 = 0;
+            }
+        } else {
+            if (has_sync_rst && event.name == 'rst' && multirange_value_at_time('rst_slider', event.value)) {
+                if (multirange_value_at_time('d_slider', event.value)) {
+                    toggles.push(event.value);
+                    value_is_1 = 1;
+                }
+            } else if (event.name == 'd' && multirange_value_at_time('d_slider', event.value)) {
+                if (!has_sync_rst || multirange_value_at_time('rst_slider', event.value)) {
+                    toggles.push(event.value);
+                    value_is_1 = 1;
+                }
+            }
+        }
+    });
+
+    const posedges = clk_to_toggles().filter((_, index) => index % 2 === 0);
+    const violation_starts = [];
+
+    posedges.forEach(posedge => {
+        let q_toggle_index = q_toggles().findIndex((q_toggle) => posedge < q_toggle);
+        if (q_toggle_index == -1)
+            q_toggle_index = q_toggles().length;
+        const q_value = (q_toggle_index%2);
+
+        const setup_time = q_value ? FALLING_SETUPTIME : RISING_SETUPTIME;
+        const hold_time = q_value ? FALLING_HOLDTIME : RISING_HOLDTIME;
+        const clktoq = q_value ? FALLING_CLKTOQ : RISING_CLKTOQ;
+
+        const lowerBound = posedge - setup_time;
+        const upperBound = posedge + hold_time;
+        const count = toggles.filter(toggle => (toggle > lowerBound && toggle < upperBound)).length;
+        if (count > 0) {
+            violation_starts.push(posedge + clktoq);
+        }
+    });
+
+    // calculate violation_ends as follows:
+    // async_events is an array of tupes with name and value
+    // if has_async_rst then add to async_events, name = rst
+    // if has_async_set
+
+}
+
 function draw_toggle_canvases() {
     // d_canvas: draw red rectangle around aperture, draw blue line at clktoq
     const canvases = document.querySelectorAll('.toggle_canvas');
@@ -159,6 +236,17 @@ function draw_toggle_canvases() {
         d_ctx.lineTo(line_x, d_canvas.height);
         d_ctx.stroke();
     });
+    // draw violations to q_canvas
+    const q_canvas = document.getElementById("q_canvas");
+    const q_ctx = q_canvas.getContext('2d');
+    q_ctx.beginPath();
+    q_ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+    violations().forEach(violation => {
+        const line_x = time2canvasX(violation, q_canvas);
+        q_ctx.moveTo(line_x, 0);
+        q_ctx.lineTo(line_x, q_canvas.height);
+    });
+    q_ctx.stroke();
 }
 
 function multirange_value_at_time(multirange, time) {
@@ -171,6 +259,8 @@ function multirange_value_at_time(multirange, time) {
     }
     return (toggle_index%2);
 }
+
+
 
 function q_toggles() {
     const has_sync_rst = document.getElementById("sync_rst").checked;
