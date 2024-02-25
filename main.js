@@ -7,17 +7,17 @@ var clk_canvas = document.getElementById("clk_canvas");
 var q_canvas = document.getElementById("q_canvas");
 var d_canvas = document.getElementById("d_canvas");
 
-var CLK_FREQ = 500.0;
-var STOP_TIME = 5.0;
+var CLK_FREQ = 2000.0;
+var STOP_TIME = 2.5;
 
 var RISING_CLKTOQ = 0.120;
 var FALLING_CLKTOQ = 0.085;
-var RISING_HOLDTIME = -0.065;
+var RISING_HOLDTIME = -0.029;
 var FALLING_HOLDTIME = 0.002;
-var RISING_SETUPTIME = 0.029;
+var RISING_SETUPTIME = 0.065;
 var FALLING_SETUPTIME = 0.091;
-var ASYNCSETTIME = 0.029;
-var ASYNCRSTTIME = 0.029;
+var ASYNCSETTIME = 0;
+var ASYNCRSTTIME = 0;
 
 const freq2time = ( freq ) => (1000 / freq);
 const time2freq = ( freq ) => (1000 / freq);
@@ -79,9 +79,9 @@ function handle_slider_sub(multirange) {
 }
 
 function multirange_to_toggles(multirange) {
-    let inverted = ["rst_slider", "set_slider"].includes(multirange);
     let thumbs = document.getElementById(multirange).querySelectorAll('.multirange_thumb');
     toggles = []
+    let inverted = ["rst_slider", "set_slider"].includes(multirange);
     if (inverted) toggles.push(-1);
     thumbs.forEach(thumb => {
         toggles.push(parseFloat(thumb.value));
@@ -102,6 +102,7 @@ function clk_to_toggles() {
 }
 
 function draw_toggle_canvases() {
+    // d_canvas: draw red rectangle around aperture, draw blue line at clktoq
     const canvases = document.querySelectorAll('.toggle_canvas');
     canvases.forEach(canvas => {
         const togglesAttr = canvas.getAttribute('toggles');
@@ -132,9 +133,35 @@ function draw_toggle_canvases() {
             ctx.stroke();
         }
     });
+    // draw aux shapes to d_canvas
+    const d_canvas = document.getElementById("d_canvas");
+    const d_ctx = d_canvas.getContext('2d');
+    const posedges = clk_to_toggles().filter((_, index) => index % 2 === 0);
+    posedges.forEach(posedge => {
+        let q_toggle_index = q_toggles().findIndex((q_toggle) => posedge < q_toggle);
+        if (q_toggle_index == -1)
+            q_toggle_index = q_toggles().length;
+        const q_value = (q_toggle_index%2);
+
+        const setup_time = q_value ? FALLING_SETUPTIME : RISING_SETUPTIME;
+        const hold_time = q_value ? FALLING_HOLDTIME : RISING_HOLDTIME;
+        const clktoq = q_value ? FALLING_CLKTOQ : RISING_CLKTOQ;
+        const rect_x = time2canvasX(posedge - setup_time, d_canvas);
+        const rect_w = time2canvasX(setup_time + hold_time, d_canvas);
+        const line_x = time2canvasX(posedge + clktoq, d_canvas);
+
+        d_ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+        d_ctx.fillRect(rect_x, 0, rect_w, d_canvas.height);
+
+        d_ctx.beginPath();
+        d_ctx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+        d_ctx.moveTo(line_x, 0);
+        d_ctx.lineTo(line_x, d_canvas.height);
+        d_ctx.stroke();
+    });
 }
 
-function toggle_value_at_time(multirange, time) {
+function multirange_value_at_time(multirange, time) {
     let d_toggles = multirange_to_toggles(multirange);
     let toggle_index = 0;
     for (toggle_index = 0; toggle_index < d_toggles.length; toggle_index++) {
@@ -164,19 +191,19 @@ function q_toggles() {
 
     for (const event of events) {
         if (value_is_1) {
-            if (has_async_rst && event.name == "rst" && !toggle_value_at_time("rst_slider", event.value)) {
+            if (has_async_rst && event.name == "rst" && !multirange_value_at_time("rst_slider", event.value)) {
                 toggles.push(event.value + ASYNCRSTTIME)
                 value_is_1 = 0;
             } else if (has_async_set && event.name == "set") {
-            } else if (has_async_set && !toggle_value_at_time("set_slider", event.value - ASYNCSETTIME)) {
-            } else if (has_async_set && event.name == "clk" && !toggle_value_at_time("set_slider", event.value - ASYNCSETTIME + FALLING_CLKTOQ)) {
+            } else if (has_async_set && !multirange_value_at_time("set_slider", event.value - ASYNCSETTIME)) {
+            } else if (has_async_set && event.name == "clk" && !multirange_value_at_time("set_slider", event.value - ASYNCSETTIME + FALLING_CLKTOQ)) {
                 // maintain 1
             } else if (event.name == "clk") {
-                let value_before_setup = toggle_value_at_time("d_slider", event.value - FALLING_SETUPTIME);
-                let value_after_hold = toggle_value_at_time("d_slider", event.value + FALLING_HOLDTIME);
+                let value_before_setup = multirange_value_at_time("d_slider", event.value - FALLING_SETUPTIME);
+                let value_after_hold = multirange_value_at_time("d_slider", event.value + FALLING_HOLDTIME);
                 if (has_sync_rst) {
-                    value_before_setup &= toggle_value_at_time("rst_slider", event.value - FALLING_SETUPTIME);
-                    value_after_hold &= toggle_value_at_time("rst_slider", event.value + FALLING_HOLDTIME);
+                    value_before_setup &= multirange_value_at_time("rst_slider", event.value - FALLING_SETUPTIME);
+                    value_after_hold &= multirange_value_at_time("rst_slider", event.value + FALLING_HOLDTIME);
                 }
                 if (value_before_setup == 0 && value_after_hold == 0) {
                     toggles.push(event.value + FALLING_CLKTOQ)
@@ -184,19 +211,19 @@ function q_toggles() {
                 }
             }
         } else {
-            if (has_async_rst && event.name == "rst" && !toggle_value_at_time("rst_slider", event.value)) {
-            } else if (has_async_rst && !toggle_value_at_time("rst_slider", event.value - ASYNCRSTTIME)) {
-            } else if (has_async_rst && event.name == "clk" && !toggle_value_at_time("rst_slider", event.value - ASYNCRSTTIME + RISING_CLKTOQ)) {
+            if (has_async_rst && event.name == "rst" && !multirange_value_at_time("rst_slider", event.value)) {
+            } else if (has_async_rst && !multirange_value_at_time("rst_slider", event.value - ASYNCRSTTIME)) {
+            } else if (has_async_rst && event.name == "clk" && !multirange_value_at_time("rst_slider", event.value - ASYNCRSTTIME + RISING_CLKTOQ)) {
                 // maintain 0
             } else if (has_async_set && event.name == "set") {
                 toggles.push(event.value + ASYNCSETTIME)
                 value_is_1 = 1;
             } else if (event.name == "clk") {
-                let value_before_setup = toggle_value_at_time("d_slider", event.value - RISING_SETUPTIME);
-                let value_after_hold = toggle_value_at_time("d_slider", event.value + RISING_HOLDTIME);
+                let value_before_setup = multirange_value_at_time("d_slider", event.value - RISING_SETUPTIME);
+                let value_after_hold = multirange_value_at_time("d_slider", event.value + RISING_HOLDTIME);
                 if (has_sync_rst) {
-                    value_before_setup &= toggle_value_at_time("rst_slider", event.value - RISING_SETUPTIME);
-                    value_after_hold &= toggle_value_at_time("rst_slider", event.value + RISING_HOLDTIME);
+                    value_before_setup &= multirange_value_at_time("rst_slider", event.value - RISING_SETUPTIME);
+                    value_after_hold &= multirange_value_at_time("rst_slider", event.value + RISING_HOLDTIME);
                 }
                 if (value_before_setup == 1 && value_after_hold == 1) {
                     toggles.push(event.value + RISING_CLKTOQ)

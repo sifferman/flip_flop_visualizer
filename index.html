@@ -28,11 +28,11 @@
             <td><table>
                 <tr>
                     <td>Freq (MHz)</td>
-                    <td><input type="number" id="clk_frequency_input" value="500" min="0" onchange="handle_clk_frequency_input()"/></td>
+                    <td><input type="number" id="clk_frequency_input" value="2000" min="0" onchange="handle_clk_frequency_input()"/></td>
                 </tr>
                 <tr>
                     <td>Stop (ns)</td>
-                    <td><input type="number" id="clk_duration_input" value="5" min="0" onchange="handle_clk_duration_input()"/></td>
+                    <td><input type="number" id="clk_duration_input" value="2.5" min="0" onchange="handle_clk_duration_input()"/></td>
                 </tr>
             </table></td>
             <td>
@@ -43,7 +43,7 @@
             <!-- d -->
             <td>D Input</td>
             <td>
-                <canvas class="toggle_canvas" toggles="multirange_to_toggles('d_slider')"></canvas>
+                <canvas id="d_canvas" class="toggle_canvas" toggles="multirange_to_toggles('d_slider')"></canvas>
             </td>
         </tr>
         <tr>
@@ -77,8 +77,8 @@
                 <div class="multirange_container">
                     <div id="rst_slider" class="sliders_control">
                         <input class="multirange_skeleton" type="range" disabled/>
+                        <input class="multirange_thumb" type="range" value="1" oninput="handle_slider()"/>
                         <input class="multirange_thumb" type="range" value="2" oninput="handle_slider()"/>
-                        <input class="multirange_thumb" type="range" value="3" oninput="handle_slider()"/>
                     </div>
                 </div>
             </td>
@@ -99,8 +99,8 @@
                 <div class="multirange_container">
                     <div id="set_slider" class="sliders_control">
                         <input class="multirange_skeleton" type="range" disabled/>
+                        <input class="multirange_thumb" type="range" value="1" oninput="handle_slider()"/>
                         <input class="multirange_thumb" type="range" value="2" oninput="handle_slider()"/>
-                        <input class="multirange_thumb" type="range" value="3" oninput="handle_slider()"/>
                     </div>
                 </div>
             </td>
@@ -109,7 +109,7 @@
             <!-- q -->
             <td>Q Output</td>
             <td>
-                <canvas class="toggle_canvas" toggles="q_toggles()"></canvas>
+                <canvas id="q_canvas" class="toggle_canvas" toggles="q_toggles()"></canvas>
             </td>
         </tr>
     </table>
